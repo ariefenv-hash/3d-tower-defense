@@ -35,10 +35,10 @@
     MAX_WAVE: 15,
     BUILD_TIME: 20, // 波间自动开波倒计时（秒）；第 1 波不倒计时
 
-    /* ---------- 塔 ---------- */
+    /* ---------- 塔（星墨手卷调色：青玉/黛蓝/月金） ---------- */
     TOWERS: {
       prism: {
-        name: '棱镜', icon: '◈', color: 0x4ef0e8,
+        name: '棱镜', icon: '◈', color: 0x9fc4b4,
         cost: 60,
         desc: '折射星核光束，延长并强化伤害光路。它自己不攻击——它的武器是光。',
         tip: '光束会射向最近的棱镜，布设位置决定光路走向。',
@@ -50,7 +50,7 @@
         stats: lv => `折射增益 ×${lv.gain}`
       },
       frost: {
-        name: '霜塔', icon: '❄', color: 0x74a8ff,
+        name: '霜塔', icon: '❄', color: 0x8aa3c0,
         cost: 50,
         desc: '寒冰力场：范围内敌人持续减速并受到微弱冻伤。',
         tip: '减速不叠加，取最强。适合铺在光路周围拖住敌人。',
@@ -62,7 +62,7 @@
         stats: lv => `半径 ${lv.radius.toFixed(1)} · 减速 ${Math.round(lv.slow * 100)}% · ${lv.dps}/秒`
       },
       pulse: {
-        name: '脉冲炮', icon: '✦', color: 0xffc94d,
+        name: '脉冲炮', icon: '✦', color: 0xc9a86a,
         cost: 70,
         desc: '经典动能武器：锁定单体发射高速弹丸。光束的可靠补刀。',
         tip: '优先攻击射程内走得最远的敌人。',
@@ -75,14 +75,14 @@
       }
     },
 
-    /* ---------- 敌人 ---------- */
+    /* ---------- 敌人（山海异兽 · 哑色） ---------- */
     ENEMIES: {
-      drone:    { name: '蜂群',  hp: 30,  speed: 1.6,  bounty: 6,  coreDmg: 1, color: 0xff5f6e, geo: 'octa',   size: 0.32 },
-      runner:   { name: '游袭者', hp: 24,  speed: 3.0,  bounty: 5,  coreDmg: 1, color: 0xffc94d, geo: 'tetra',  size: 0.28 },
-      tank:     { name: '重装体', hp: 140, speed: 0.95, bounty: 14, coreDmg: 3, color: 0x9b6bff, geo: 'box',    size: 0.44 },
-      shield:   { name: '偏导体', hp: 72,  speed: 1.35, bounty: 12, coreDmg: 2, color: 0x53d7ff, geo: 'ico',    size: 0.36, beamResist: 0.45 },
-      splitter: { name: '裂生体', hp: 50,  speed: 1.7,  bounty: 8,  coreDmg: 1, color: 0x66ff8f, geo: 'dodeca', size: 0.34, splitsInto: ['runner', 2] },
-      boss:     { name: '湮灭核心', hp: 380, speed: 0.8, bounty: 200, coreDmg: 8, color: 0xff4d8f, geo: 'boss', size: 0.85 }
+      drone:    { name: '蜂群',  hp: 30,  speed: 1.6,  bounty: 6,  coreDmg: 1, color: 0xc8452e, geo: 'octa',   size: 0.32 },
+      runner:   { name: '游袭者', hp: 24,  speed: 3.0,  bounty: 5,  coreDmg: 1, color: 0xd9b06e, geo: 'tetra',  size: 0.28 },
+      tank:     { name: '重装体', hp: 140, speed: 0.95, bounty: 14, coreDmg: 3, color: 0x6b7f9e, geo: 'box',    size: 0.44 },
+      shield:   { name: '偏导体', hp: 72,  speed: 1.35, bounty: 12, coreDmg: 2, color: 0x7fae94, geo: 'ico',    size: 0.36, beamResist: 0.45 },
+      splitter: { name: '裂生体', hp: 50,  speed: 1.7,  bounty: 8,  coreDmg: 1, color: 0x8fae7a, geo: 'dodeca', size: 0.34, splitsInto: ['runner', 2] },
+      boss:     { name: '湮灭核心', hp: 380, speed: 0.8, bounty: 200, coreDmg: 8, color: 0xd0492f, geo: 'boss', size: 0.85 }
     },
 
     /* ---------- 波次编排（15 波） ---------- */

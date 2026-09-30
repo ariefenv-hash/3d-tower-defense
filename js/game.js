@@ -320,7 +320,7 @@
       PE.sfx.kill();
       if (e.isBoss) {
         PE.sfx.boss();
-        this.fx.ring(e.x, e.z, 0xff4d8f, 4);
+        this.fx.ring(e.x, e.z, 0xd0492f, 4);
         if (this.ui) this.ui.toast('湮灭核心已被摧毁！+200 能量', 'gold');
       }
       if (this.ui) this.ui.refresh();
@@ -350,7 +350,7 @@
       this.state = 'over';
       PE.sfx.lose();
       this.scene.shake(1.1);
-      this.fx.burst(this.map.coreGroup.position.x, 1, this.map.coreGroup.position.z, 0x4ef0e8, 40, 6);
+      this.fx.burst(this.map.coreGroup.position.x, 1, this.map.coreGroup.position.z, 0xd9c489, 40, 6);
       if (this.ui) this.ui.showDefeat(this.stats);
     }
 

@@ -100,9 +100,9 @@
           const dir = b.clone().sub(a).normalize();
           const quat = new THREE.Quaternion().setFromUnitVectors(UP, dir);
 
-          // 内芯（亮）
+          // 内芯（亮）—— 月金流光
           const coreMat = new THREE.MeshBasicMaterial({
-            color: new THREE.Color().setHSL(0.49 - i * 0.012, 0.95, 0.78 - i * 0.05),
+            color: new THREE.Color().setHSL(0.105 - i * 0.006, 0.8, 0.8 - i * 0.05),
             transparent: true, opacity: 0.92, blending: THREE.AdditiveBlending, depthWrite: false
           });
           const core = new THREE.Mesh(SEG_GEO, coreMat);
@@ -111,9 +111,9 @@
           core.scale.set(0.045, len, 0.045);
           this.group.add(core);
 
-          // 辉光（宽）
+          // 辉光（宽）—— 淡金晕染
           const glowMat = new THREE.MeshBasicMaterial({
-            color: new THREE.Color().setHSL(0.5, 0.9, 0.55 - i * 0.04),
+            color: new THREE.Color().setHSL(0.1, 0.72, 0.52 - i * 0.04),
             transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false
           });
           const glow = new THREE.Mesh(SEG_GEO, glowMat);
@@ -124,9 +124,9 @@
 
           this.segObjs.push({ core, glow, mat: coreMat, glowMat, segIdx: segIdx });
 
-          // 流动光珠
+          // 流动光珠（宣纸金白）
           const dotMat = new THREE.MeshBasicMaterial({
-            color: 0xcafff9, transparent: true, opacity: 0.9,
+            color: 0xf5e9c5, transparent: true, opacity: 0.9,
             blending: THREE.AdditiveBlending, depthWrite: false
           });
           const dot = new THREE.Mesh(DOT_GEO, dotMat);

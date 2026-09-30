@@ -79,9 +79,9 @@
 
   const TIER_W = { c: 5, r: 3, e: 2 };
   const TIER_META = {
-    c: { name: '常规', color: '#5ab8ff' },
-    r: { name: '稀有', color: '#b57bff' },
-    e: { name: '史诗', color: '#ffc94d' }
+    c: { name: '凡品', color: '#8fa0b6' },
+    r: { name: '珍品', color: '#c9a86a' },
+    e: { name: '孤品', color: '#d0492f' }
   };
 
   PE.relics = {

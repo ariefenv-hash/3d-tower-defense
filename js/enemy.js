@@ -74,7 +74,7 @@
       if (this.isBoss) {
         const ring = new THREE.Mesh(
           new THREE.TorusGeometry(d.size * 1.5, 0.06, 8, 40),
-          new THREE.MeshBasicMaterial({ color: 0xffc94d })
+          new THREE.MeshBasicMaterial({ color: 0xd9b06e })
         );
         ring.rotation.x = Math.PI / 2.3;
         this.group.add(ring);
@@ -85,7 +85,7 @@
         const shell = new THREE.Mesh(
           new THREE.SphereGeometry(d.size * 1.6, 12, 10),
           new THREE.MeshBasicMaterial({
-            color: 0x53d7ff, transparent: true, opacity: 0.18,
+            color: 0x7fae94, transparent: true, opacity: 0.18,
             blending: THREE.AdditiveBlending, depthWrite: false
           })
         );
@@ -100,7 +100,7 @@
       );
       this.barFill = new THREE.Mesh(
         new THREE.PlaneGeometry(HP_BAR_W, 0.075),
-        new THREE.MeshBasicMaterial({ color: 0xff5f6e, depthTest: false })
+        new THREE.MeshBasicMaterial({ color: 0xc8452e, depthTest: false })
       );
       this.barFill.position.z = 0.002;
       bg.renderOrder = 90; this.barFill.renderOrder = 91;
@@ -191,7 +191,7 @@
       this.barFill.scale.x = frac || 0.0001;
       this.barFill.position.x = -(1 - frac) * HP_BAR_W / 2;
       if (this.isBoss) {
-        this.barFill.material.color.setHex(frac > 0.5 ? 0xff5f6e : (frac > 0.25 ? 0xffa04d : 0xff2d55));
+        this.barFill.material.color.setHex(frac > 0.5 ? 0xc8452e : (frac > 0.25 ? 0xd08a3e : 0xa8322e));
       }
       this.bar.quaternion.copy(g.scene.camera.quaternion);
     }

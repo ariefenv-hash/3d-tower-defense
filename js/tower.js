@@ -75,7 +75,7 @@
         const core = new THREE.Mesh(
           new THREE.OctahedronGeometry(0.34 * lvS, 0),
           new THREE.MeshStandardMaterial({
-            color: 0x123c44, emissive: color, emissiveIntensity: 0.9 + this.level * 0.35,
+            color: 0x2c3a36, emissive: color, emissiveIntensity: 0.5 + this.level * 0.22,
             roughness: 0.15, metalness: 0.6, transparent: true, opacity: 0.85, flatShading: true
           })
         );
@@ -99,7 +99,7 @@
         const crystal = new THREE.Mesh(
           new THREE.CylinderGeometry(0.26 * lvS, 0.34 * lvS, 0.72 * lvS, 6),
           new THREE.MeshStandardMaterial({
-            color: 0x1a3055, emissive: color, emissiveIntensity: 0.8 + this.level * 0.3,
+            color: 0x2a3448, emissive: color, emissiveIntensity: 0.45 + this.level * 0.2,
             roughness: 0.2, metalness: 0.3, transparent: true, opacity: 0.8, flatShading: true
           })
         );
@@ -224,7 +224,7 @@
   PE.spawnProjectile = function (tower, target, dmg) {
     const geo = PROJ_GEO;
     const mat = new THREE.MeshBasicMaterial({
-      color: 0xffd257, transparent: true, opacity: 0.95,
+      color: 0xd9b06e, transparent: true, opacity: 0.95,
       blending: THREE.AdditiveBlending, depthWrite: false
     });
     const mesh = new THREE.Mesh(geo, mat);
@@ -260,7 +260,7 @@
       if (hit || p.life <= 0) {
         if (hit && p.target && !p.target.dead) {
           p.target.takeDamage(p.dmg, 'pulse');
-          game.fx.burst(p.mesh.position.x, p.mesh.position.y, p.mesh.position.z, 0xffc94d, 4, 1.6);
+          game.fx.burst(p.mesh.position.x, p.mesh.position.y, p.mesh.position.z, 0xd9b06e, 4, 1.6);
         }
         game.scene.scene.remove(p.mesh);
         p.mesh.material.dispose();

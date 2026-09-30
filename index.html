@@ -2,15 +2,25 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>棱镜回响 PRISM ECHO · 3D Roguelike 塔防</title>
-<link rel="icon" href="data:," />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>棱镜回响 · 星墨手卷 | 3D Roguelike 塔防</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='2' width='28' height='28' rx='5' fill='%23c8452e'/%3E%3Crect x='4.5' y='4.5' width='23' height='23' rx='3' fill='none' stroke='%23f2ecd8' stroke-width='1.2' opacity='.55'/%3E%3Ctext x='16' y='23' font-size='15' text-anchor='middle' fill='%23f2ecd8' font-family='serif'%3E%E5%9B%9E%3C/text%3E%3C/svg%3E" />
+
+<!-- 衬线字体：站酷小薇（题字）· 思源宋体（正文）· Cormorant Garamond（数笈） -->
+<!-- 联网时由 Google Fonts 提供；离线时回退本地楷体 / 宋体，书卷气不减 -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+SC:wght@400;500;600&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet" />
+
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <div id="app">
   <!-- 3D 渲染画布容器 -->
   <div id="scene-holder"></div>
+
+  <!-- 手卷装帧：暗角 · 纸纹（纯装饰，不拦截交互） -->
+  <div id="scroll-dress" aria-hidden="true"></div>
 
   <!-- 顶部 HUD -->
   <div id="hud-top" class="hidden">
@@ -40,8 +50,14 @@
 
   <!-- 底部建造栏 -->
   <div id="build-bar" class="hidden">
-    <div class="bar-title">建造</div>
+    <div class="bar-title">布 防</div>
     <div id="build-cards"></div>
+  </div>
+
+  <!-- 触屏视野缩放控件（双指捏合之外的保险） -->
+  <div id="zoom-ctl">
+    <button id="zoom-in" aria-label="拉近视野">＋</button>
+    <button id="zoom-out" aria-label="拉远视野">－</button>
   </div>
 
   <!-- 塔详情浮层 -->
@@ -59,7 +75,7 @@
 
   <!-- 提示 -->
   <div id="toast-wrap"></div>
-  <div id="tip-bottom">左键 建造/选中 · 拖拽 旋转视角 · 滚轮 缩放 · 1/2/3 选塔 · Esc 取消 · Space 开波</div>
+  <div id="tip-bottom">左键 布防 / 选中 · 拖拽 转卷 · 滚轮 收放 · 1/2/3 选塔 · Esc 收手 · Space 开波</div>
 
   <!-- 模态层：菜单 / 遗物三选一 / 结算 -->
   <div id="modal-layer" class="hidden"></div>

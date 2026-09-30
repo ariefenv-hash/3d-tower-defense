@@ -101,7 +101,7 @@
       // 建造区底板
       const base = new THREE.Mesh(
         new THREE.BoxGeometry(G.COLS * G.CELL + 1.6, 0.14, G.ROWS * G.CELL + 1.6),
-        new THREE.MeshStandardMaterial({ color: 0x0c1322, roughness: 0.85, metalness: 0.25 })
+        new THREE.MeshStandardMaterial({ color: 0x11141d, roughness: 0.85, metalness: 0.25 })
       );
       base.position.y = -0.07;
       base.receiveShadow = false;
@@ -121,11 +121,11 @@
       const gGeo = new THREE.BufferGeometry();
       gGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pts), 3));
       this.group.add(new THREE.LineSegments(gGeo,
-        new THREE.LineBasicMaterial({ color: 0x1d3350, transparent: true, opacity: 0.75 })));
+        new THREE.LineBasicMaterial({ color: 0x272b3a, transparent: true, opacity: 0.75 })));
 
-      // 路径发光地砖
+      // 路径金尘暗道
       const pathMat = new THREE.MeshStandardMaterial({
-        color: 0x0a2a36, emissive: 0x1189a6, emissiveIntensity: 0.55, roughness: 0.6
+        color: 0x1c1a12, emissive: 0x8a6d2a, emissiveIntensity: 0.5, roughness: 0.6
       });
       for (const c of this.pathCells) {
         const m = new THREE.Mesh(GEO.pathTile, pathMat);
@@ -158,11 +158,11 @@
         }
       }
 
-      // 入口传送门（品红环）
+      // 入口朱砂门（星卷裂口）
       const entry = this.worldPos(this.pathCells[0].col, this.pathCells[0].row);
       const ring = new THREE.Mesh(
         new THREE.TorusGeometry(0.5, 0.07, 10, 32),
-        new THREE.MeshBasicMaterial({ color: 0xff4d8f })
+        new THREE.MeshBasicMaterial({ color: 0xd0492f })
       );
       ring.position.set(entry.x, 0.55, entry.z);
       ring.rotation.y = Math.PI / 2;
@@ -170,31 +170,31 @@
       this.entryRing = ring;
       const gate = new THREE.Mesh(
         new THREE.CircleGeometry(0.44, 24),
-        new THREE.MeshBasicMaterial({ color: 0xff4d8f, transparent: true, opacity: 0.28, side: THREE.DoubleSide })
+        new THREE.MeshBasicMaterial({ color: 0xd0492f, transparent: true, opacity: 0.26, side: THREE.DoubleSide })
       );
       gate.position.set(entry.x, 0.55, entry.z);
       gate.rotation.y = Math.PI / 2;
       this.group.add(gate);
 
-      // 星核（终点）—— 发光多面体 + 旋转环 + 点光
+      // 星核（终点）—— 月白多面体 + 金环 + 暖光
       const core = this.worldPos(C.CORE.col, C.CORE.row);
       const coreGroup = new THREE.Group();
       coreGroup.position.set(core.x, 0.85, core.z);
       const coreMesh = new THREE.Mesh(
         new THREE.IcosahedronGeometry(0.55, 0),
         new THREE.MeshStandardMaterial({
-          color: 0x4ef0e8, emissive: 0x2bd9d0, emissiveIntensity: 1.4,
+          color: 0xd9c489, emissive: 0xc9a86a, emissiveIntensity: 1.4,
           roughness: 0.2, metalness: 0.3, flatShading: true
         })
       );
       coreGroup.add(coreMesh);
       const coreRing = new THREE.Mesh(
         new THREE.TorusGeometry(0.85, 0.045, 10, 48),
-        new THREE.MeshBasicMaterial({ color: 0x4ef0e8, transparent: true, opacity: 0.75 })
+        new THREE.MeshBasicMaterial({ color: 0xd9c489, transparent: true, opacity: 0.75 })
       );
       coreRing.rotation.x = Math.PI / 2.4;
       coreGroup.add(coreRing);
-      const coreLight = new THREE.PointLight(0x4ef0e8, 1.5, 8, 2);
+      const coreLight = new THREE.PointLight(0xc9a86a, 1.5, 8, 2);
       coreGroup.add(coreLight);
       this.group.add(coreGroup);
       this.coreGroup = coreGroup;
@@ -203,19 +203,19 @@
 
       // 悬停高亮板
       this.hoverValidMat = new THREE.MeshBasicMaterial({
-        color: 0x6affc4, transparent: true, opacity: 0.35, side: THREE.DoubleSide
+        color: 0x9fc9a8, transparent: true, opacity: 0.35, side: THREE.DoubleSide
       });
       this.hoverInvalidMat = new THREE.MeshBasicMaterial({
-        color: 0xff5577, transparent: true, opacity: 0.35, side: THREE.DoubleSide
+        color: 0xe05a41, transparent: true, opacity: 0.35, side: THREE.DoubleSide
       });
       this.hoverPad = new THREE.Mesh(GEO.hoverPad, this.hoverValidMat);
       this.hoverPad.rotation.x = -Math.PI / 2;
       this.hoverPad.visible = false;
       this.group.add(this.hoverPad);
 
-      // 路径流动光尘（装饰，指示行进方向）
+      // 路径金尘流萤（装饰，指示行进方向）
       this.pathRunners = [];
-      const runnerMat = new THREE.MeshBasicMaterial({ color: 0x7df3ff, transparent: true, opacity: 0.85 });
+      const runnerMat = new THREE.MeshBasicMaterial({ color: 0xd8c896, transparent: true, opacity: 0.85 });
       for (let i = 0; i < 4; i++) {
         const m = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), runnerMat);
         this.group.add(m);

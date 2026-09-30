@@ -6,6 +6,13 @@
   window.PE = window.PE || {};
 
   PE.utils = {
+    /** 触屏 / 粗指针设备检测（移动端 UI 与手势分支用） */
+    isCoarse() {
+      return PE.utils._coarse !== undefined ? PE.utils._coarse
+        : (PE.utils._coarse =
+          (window.matchMedia && matchMedia('(pointer: coarse)').matches) ||
+          ('ontouchstart' in window && navigator.maxTouchPoints > 0));
+    },
     /** mulberry32 — 可复现的种子随机数（Roguelike 精神：每局一个 seed） */
     makeRng(seed) {
       let a = seed >>> 0;

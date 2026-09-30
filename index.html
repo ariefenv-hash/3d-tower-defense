@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>棱镜回响 PRISM ECHO · 3D Roguelike 塔防</title>
+<link rel="icon" href="data:," />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+  <!-- 3D 渲染画布容器 -->
+  <div id="scene-holder"></div>
+
+  <!-- 顶部 HUD -->
+  <div id="hud-top" class="hidden">
+    <div class="hud-block" id="wave-block">
+      <div class="hud-label">波次</div>
+      <div class="hud-value" id="wave-num">1 <span class="hud-sub">/ 15</span></div>
+      <div id="wave-dots"></div>
+    </div>
+    <div class="hud-block" id="wave-ctl">
+      <button id="btn-next-wave" class="btn-primary">开始第 1 波</button>
+      <div id="wave-countdown" class="hidden">20s</div>
+    </div>
+    <div class="hud-spacer"></div>
+    <div class="hud-block">
+      <div class="hud-label">星核完整度</div>
+      <div id="core-hp-bar"><div id="core-hp-fill"></div></div>
+      <div class="hud-value" id="core-hp-num">20 / 20</div>
+    </div>
+    <div class="hud-block">
+      <div class="hud-label">能量</div>
+      <div class="hud-value energy" id="energy-num">120</div>
+    </div>
+  </div>
+
+  <!-- 左侧遗物栏 -->
+  <div id="relic-bar" class="hidden"></div>
+
+  <!-- 底部建造栏 -->
+  <div id="build-bar" class="hidden">
+    <div class="bar-title">建造</div>
+    <div id="build-cards"></div>
+  </div>
+
+  <!-- 塔详情浮层 -->
+  <div id="tower-panel" class="hidden">
+    <div id="tp-head">
+      <span id="tp-name">棱镜塔 Lv1</span>
+      <button id="tp-close">✕</button>
+    </div>
+    <div id="tp-stats"></div>
+    <div id="tp-actions">
+      <button id="tp-upgrade" class="btn-primary">升级 ◆60</button>
+      <button id="tp-sell" class="btn-danger">回收 +36</button>
+    </div>
+  </div>
+
+  <!-- 提示 -->
+  <div id="toast-wrap"></div>
+  <div id="tip-bottom">左键 建造/选中 · 拖拽 旋转视角 · 滚轮 缩放 · 1/2/3 选塔 · Esc 取消 · Space 开波</div>
+
+  <!-- 模态层：菜单 / 遗物三选一 / 结算 -->
+  <div id="modal-layer" class="hidden"></div>
+</div>
+
+<!-- 多文件加载：全局命名空间 PE（无需服务器，file:// 双击即玩） -->
+<script src="vendor/three.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/sfx.js"></script>
+<script src="js/scene.js"></script>
+<script src="js/map.js"></script>
+<script src="js/beam.js"></script>
+<script src="js/enemy.js"></script>
+<script src="js/tower.js"></script>
+<script src="js/waves.js"></script>
+<script src="js/relics.js"></script>
+<script src="js/game.js"></script>
+<script src="js/input.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

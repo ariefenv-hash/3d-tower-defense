@@ -1,0 +1,40 @@
+/* =====================================================
+ * main.js — 启动器：组装各模块并驱动主循环
+ * ===================================================== */
+(function () {
+  'use strict';
+
+  function boot() {
+    const holder = document.getElementById('scene-holder');
+    const scene = new PE.SceneMgr(holder);
+    const game = new PE.Game(scene);
+    const ui = new PE.UI(game);
+    const input = new PE.Input(game, ui, scene);
+    game.ui = ui;
+    game.input = input;
+
+    ui.showMenu();
+
+    // 浏览器手势策略：首次交互解锁音频
+    window.addEventListener('pointerdown', () => PE.sfx.unlock(), { once: true });
+
+    // 主循环
+    let last = performance.now();
+    function frame(now) {
+      requestAnimationFrame(frame);
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      game.update(dt);
+      scene.render();
+    }
+    requestAnimationFrame(frame);
+
+    window.PE.game = game; // 调试入口
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();

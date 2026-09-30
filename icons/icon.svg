@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- 棱镜回响 · 星墨手卷 应用图标（矢量版） -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="85%">
+      <stop offset="0%" stop-color="#151c2e"/>
+      <stop offset="100%" stop-color="#0b0e17"/>
+    </radialGradient>
+    <linearGradient id="seal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d05238"/>
+      <stop offset="100%" stop-color="#b23c28"/>
+    </linearGradient>
+    <mask id="crescent">
+      <rect width="512" height="512" fill="#fff"/>
+      <circle cx="412" cy="76" r="27" fill="#000"/>
+    </mask>
+    <filter id="beamBlur" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+  </defs>
+
+  <!-- 玄墨夜幕 -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <!-- 月金新月 -->
+  <circle cx="426" cy="88" r="30" fill="#c9a86a" mask="url(#crescent)"/>
+
+  <!-- 月光斜落（呼应光束折射机制） -->
+  <polygon points="424,102 398,142 206,336 184,312" fill="#c9a86a" opacity=".13" filter="url(#beamBlur)"/>
+
+  <!-- 朱砂方印 -->
+  <rect x="88" y="88" width="336" height="336" rx="36" fill="url(#seal)"/>
+  <rect x="110" y="110" width="292" height="292" rx="26" fill="none" stroke="#f2ecd8" stroke-width="5" opacity=".52"/>
+
+  <!-- 印文「回」 -->
+  <text x="256" y="256" font-family="'Noto Serif SC','Source Han Serif SC','Songti SC','SimSun',serif"
+        font-weight="600" font-size="224" fill="#f2ecd8"
+        text-anchor="middle" dominant-baseline="central">回</text>
+</svg>

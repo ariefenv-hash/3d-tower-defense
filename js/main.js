@@ -15,6 +15,17 @@
 
     ui.showMenu();
 
+    // PWA：注册 service worker（仅 https / localhost 环境生效；file:// 双击直开时静默跳过）
+    if ('serviceWorker' in navigator) {
+      var loc = window.location;
+      var swOk = loc.protocol === 'https:' || loc.hostname === 'localhost' || loc.hostname === '127.0.0.1';
+      if (swOk) {
+        try {
+          navigator.serviceWorker.register('./sw.js').catch(function () { /* 注册失败不影响游玩 */ });
+        } catch (e) { /* 静默 */ }
+      }
+    }
+
     // 浏览器手势策略：首次交互解锁音频
     window.addEventListener('pointerdown', () => PE.sfx.unlock(), { once: true });
 

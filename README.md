@@ -1,14 +1,15 @@
 # 棱镜回响 · 星墨手卷 PRISM ECHO
 
-3D Roguelike 塔防游戏 · Three.js 纯前端实现 · 零构建 / 零依赖
+3D Roguelike 塔防游戏 · Three.js 纯前端实现 · 零构建 / 零依赖 / 支持 PWA
 **玄墨为底 · 宣纸作字 · 朱砂点印 · 月金描线** —— 桌面与手机双端可玩
 
 ## 怎么运行
 
 **方式一（推荐，双击即玩）**：解压后直接双击 `index.html`。
 Three.js 已内置于 `vendor/`，无需联网、无需服务器、无需安装任何东西。
+（此模式下 PWA 自动跳过，不影响游玩。）
 
-**方式二（本地服务器）**：
+**方式二（本地服务器 / PWA）**：
 
 ```bash
 cd prism-echo
@@ -16,7 +17,10 @@ python -m http.server 8080
 # 浏览器打开 http://localhost:8080
 ```
 
-**手机**：把解压目录发给手机后用浏览器打开 `index.html`（或任意静态服务器托管），
+**手机 PWA 安装**：把目录托管到任意静态服务（GitHub Pages / Netlify / 局域网 http 服务器均可，
+需 https 或 localhost），用手机浏览器打开后「添加到主屏幕」即可全屏游玩、**完全离线可玩**。
+
+**手机（无托管）**：把解压目录发给手机后用浏览器打开 `index.html`，
 即可以触屏手势游玩（见下）。
 
 ## 这是一个什么样的塔防
@@ -49,7 +53,7 @@ python -m http.server 8080
 | 遗物详情 | 悬停左侧印匣 | 点按印匣展开 / 收起 |
 
 移动端已按手机竖屏完整适配：HUD 两行紧凑排布、布防卡三列等分、
-塔详情变全宽底板、三选一改横排信笺样式，底部自动避开 Home Indicator 安全区。
+塔详情变全宽底板、三选一改横排信笺样式，顶部/底部自动避开刘海与 Home Indicator 安全区。
 
 ## 数值小抄
 
@@ -62,8 +66,15 @@ python -m http.server 8080
 
 ```
 prism-echo/
-├── index.html          # 入口 + DOM 骨架（衬线字体引入 · script 按依赖顺序加载）
+├── index.html          # 入口 + DOM 骨架（衬线字体引入 · PWA 头部 · script 按依赖顺序加载）
 ├── style.css           # 「星墨手卷」主题：玄墨/宣纸/朱砂/月金 + 桌面&移动端双断点
+├── manifest.json       # PWA 应用清单（名称 / 主题色 / 图标 / standalone）
+├── sw.js               # PWA service worker（cache-first 离线缓存，含 Google Fonts 运行时缓存）
+├── icons/              # PWA 图标（AI 水墨底 + 朱砂方印「回」）
+│   ├── icon.svg        # 矢量版（favicon）
+│   ├── icon-192.png / icon-512.png
+│   ├── maskable-512.png  # 自适应图标（内容收入 80% 安全区）
+│   └── apple-touch-icon.png
 ├── README.md
 ├── vendor/
 │   └── three.min.js    # Three.js r128（本地化，离线可玩）
@@ -81,13 +92,24 @@ prism-echo/
     ├── game.js         # ⑪ 状态机 / 经济 / 粒子特效池
     ├── input.js        # ⑫ 统一指针交互（鼠标+触屏：单指转卷 / 双指捏合缩放 / 轻点布防）
     ├── ui.js           # ⑬ HUD / 竖排卷首 / 信笺卡 / 缩放按钮
-    └── main.js         # ⑭ 启动器与主循环
+    └── main.js         # ⑭ 启动器与主循环（含 SW 条件注册）
 ```
+
+## PWA 细节
+
+- **清单** `manifest.json`：standalone 独立窗口、玄墨 `#0b0e17` 主题色、任意方向；
+- **离线** `sw.js`：cache-first 策略，首发预缓存全部本地资源（24 项）+ Google Fonts 运行时缓存，
+  断网后游戏照常可玩，字体自动回退本地宋体；
+- **兼容**：SW 仅在 `https:` / `localhost` / `127.0.0.1` 下注册，`file://` 双击直开时静默跳过，
+  三种打开方式互不干扰；
+- **图标**：AI 生成水墨底图 + 思源宋体 SemiBold 朱砂方印「回」合成（192 / 512 / maskable /
+  apple-touch 全套）+ 手绘矢量 `icon.svg` 作 favicon；
+- 升级资源时改 `sw.js` 里的 `CACHE` 版本号即可触发自动更新。
 
 ## 主题定制
 
-- **字体**：站酷小薇（题字）· 思源宋体（正文）· Cormorant Garamond（数字），由 Google Fonts 提供；
-  离线时自动回退本地楷体 / 宋体，书卷气不减。
+- **字体**：思源宋体（题字 · 正文，500 字重题字保证「回」「响」内白清晰）· Cormorant Garamond（数字），
+  由 Google Fonts 提供；离线时自动回退本地宋体，书卷气不减。
 - **配色**：全部集中在 `style.css` 的 `:root` 变量（`--cinnabar` 朱砂 / `--gold` 月金 / `--paper` 宣纸 …），
   3D 场景颜色集中在 `js/config.js` 与各模块的材质定义处。
 - **调参**：所有平衡数值集中在 `js/config.js`，改完刷新页面立即生效。

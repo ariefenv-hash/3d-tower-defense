@@ -7,11 +7,15 @@
 
   PE.SceneMgr = class {
     constructor(holder) {
-      this.renderer = new THREE.WebGLRenderer({ antialias: true });
+      this.renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        powerPreference: 'high-performance' // 游戏场景优先高性能 GPU
+      });
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       this.renderer.outputEncoding = THREE.sRGBEncoding;
       holder.appendChild(this.renderer.domElement);
       this.canvas = this.renderer.domElement;
+      this.holder = holder;
 
       this.scene = new THREE.Scene();
       this.scene.background = new THREE.Color(0x0b0e17); // 玄墨夜幕
@@ -54,7 +58,13 @@
       this._groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
       this._resize();
-      window.addEventListener('resize', () => this._resize());
+      // 视口变化重算：window resize（桌面缩放/旋转）+ visualViewport resize（iOS 导航栏展开收起）
+      // + orientationchange 延迟复测（iOS 旋转时布局晚于事件就绪，实测以延迟帧为准）
+      window.addEventListener('resize', () => this._resizeSoon());
+      window.addEventListener('orientationchange', () => setTimeout(() => this._resizeSoon(), 80));
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', () => this._resizeSoon());
+      }
     }
 
     _makeStars() {
@@ -105,10 +115,20 @@
     }
 
     _resize() {
-      const w = window.innerWidth, h = window.innerHeight;
+      // 以容器实测尺寸为准：#app 走 100dvh 后与可见视口同步；
+      // iOS 上 window.innerHeight 与真实布局视口存在历史性偏差，不能直接当画布尺寸
+      let w = this.holder.clientWidth, h = this.holder.clientHeight;
+      if (!w || !h) { w = window.innerWidth; h = window.innerHeight; }
       this.renderer.setSize(w, h);
       this.camera.aspect = w / h;
       this.camera.updateProjectionMatrix();
+    }
+
+    /* rAF 合帧重算：导航栏动画期间 visualViewport 会连续触发多帧 resize，
+       合并到下一渲染帧，避免重复 setSize 抖动 */
+    _resizeSoon() {
+      if (this._rsq) return;
+      this._rsq = requestAnimationFrame(() => { this._rsq = 0; this._resize(); });
     }
 
     /* ---- 相机控制 ---- */

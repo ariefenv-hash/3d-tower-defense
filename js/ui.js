@@ -46,11 +46,11 @@
         if (!t) return;
         if (t.upCost === null) { this.toast('已是最高等级'); return; }
         if (!this.game.upgradeTower(t)) this.toast('能量不足', 'bad');
-        else this.showTowerPanel(t);
+        else { U.haptic(12); this.showTowerPanel(t); }
       });
       this.el.tpSell.addEventListener('click', () => {
         const t = this.game.selected;
-        if (t) this.game.sellTower(t);
+        if (t) { U.haptic(8); this.game.sellTower(t); }
       });
     }
 
@@ -130,6 +130,10 @@
       this.toast(`新星图已展开 · 卷号 ${seed.toString(16).toUpperCase()}`);
       if (U.isCoarse()) {
         setTimeout(() => this.toast('单指拖动转卷 · 双指开合缩放 · 轻点布防'), 700);
+        // 移动浏览器（非 PWA 全屏）：导航栏会占掉一截视口，提示可安装主屏获得完整体验
+        if (!U.isStandalone()) {
+          setTimeout(() => this.toast('「添加到主屏」可全屏游玩', 'gold'), 2600);
+        }
       }
     }
 
@@ -216,11 +220,34 @@
     /* ---------- 遗物 ---------- */
     addRelicIcon(relic) {
       const meta = PE.relics.TIER_META[relic.tier];
+      const tip = n => `<b style="color:${meta.color}">${relic.name}</b>（${meta.name}${n > 1 ? ` · 共拾 ${n} 页` : ''}）\n${relic.desc}`;
+
+      // 星屑残页可重复拾取：同类合并为同一印匣 + 计数角标，
+      // 避免无尽后期重复残页堆爆拾遗栏（移动端尤甚）
+      if (relic.frag) {
+        const exist = this.el.relicBar.querySelector(`.relic-icon[data-id="${relic.id}"]`);
+        if (exist) {
+          const n = (Number(exist.dataset.count) || 1) + 1;
+          exist.dataset.count = n;
+          let badge = exist.querySelector('.rcount');
+          if (!badge) {
+            badge = document.createElement('i');
+            badge.className = 'rcount';
+            exist.appendChild(badge);
+          }
+          badge.textContent = '×' + n;
+          exist.dataset.tip = tip(n);
+          return;
+        }
+      }
+
       const d = document.createElement('div');
       d.className = 'relic-icon';
+      d.dataset.id = relic.id;
+      d.dataset.count = 1;
       d.textContent = relic.icon;
       d.style.borderColor = meta.color + '66';
-      d.dataset.tip = `<b style="color:${meta.color}">${relic.name}</b>（${meta.name}）\n${relic.desc}`;
+      d.dataset.tip = tip(1);
       // 触屏：点按印匣展开 / 收起注解，再点其它印匣自动收起
       d.addEventListener('click', () => {
         const open = d.classList.toggle('show-tip');
@@ -233,6 +260,28 @@
 
     showRelicChoices(choices) {
       const meta = PE.relics.TIER_META;
+
+      // 防御：极端情况下若无可选项（offer 已用残页兜底，此处为双保险），
+      // 给出明确的「继续备战」出路，绝不让流程锁死在 relic 状态
+      if (!choices || !choices.length) {
+        this.el.modal.innerHTML = `
+          <div class="modal-inner">
+            <div class="relic-modal-title">回 响 拾 遗</div>
+            <div class="relic-modal-sub">第 ${this.game.wave} 波肃清 · 星图遗物已尽数收入袖中</div>
+            <div class="end-actions">
+              <button id="btn-no-relic" class="btn-primary btn-big">继续备战 ▶</button>
+            </div>
+          </div>`;
+        this.el.modal.classList.remove('hidden');
+        document.getElementById('btn-no-relic').addEventListener('click', () => {
+          PE.sfx.click();
+          U.haptic(8);
+          this.hideModal();
+          this.game.skipRelic();
+        });
+        return;
+      }
+
       let cards = '';
       choices.forEach((r, i) => {
         cards += `
@@ -255,6 +304,7 @@
       this.el.modal.querySelectorAll('.relic-card').forEach(card => {
         card.addEventListener('click', () => {
           const r = choices[Number(card.dataset.i)];
+          U.haptic(8);
           this.hideModal();
           this.game.pickRelic(r);
         });

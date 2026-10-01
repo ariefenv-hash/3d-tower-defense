@@ -81,14 +81,37 @@
   const TIER_META = {
     c: { name: '凡品', color: '#8fa0b6' },
     r: { name: '珍品', color: '#c9a86a' },
-    e: { name: '孤品', color: '#d0492f' }
+    e: { name: '孤品', color: '#d0492f' },
+    f: { name: '残页', color: '#b3a581' }
   };
+
+  /* ---- 星屑残页（无限池）----
+   * 无尽模式后期 18 遗物拾尽后，三选一以残页补齐。
+   * 残页可无限重拾、同类叠加，保证无尽模式永远有得选、构筑持续成长。
+   * 数值口径：无尽敌人 HP 线性成长 +24%/波，残页每波一页的小额叠加与之匹配。 */
+  const FRAGMENTS = [
+    { id: 'frag_dmg', tier: 'f', frag: true, icon: '✧', name: '星屑残页 · 锋',
+      desc: '星核光束伤害 +8%（残页可无限重拾）',
+      apply: g => { g.mods.beamDmg *= 1.08; g.beams.markDirty(); } },
+    { id: 'frag_gain', tier: 'f', frag: true, icon: '◇', name: '星屑残页 · 谐',
+      desc: '每座棱镜的折射增益 +4%（残页可无限重拾）',
+      apply: g => { g.mods.prismGainBonus += 0.04; g.beams.markDirty(); } },
+    { id: 'frag_bounty', tier: 'f', frag: true, icon: '⌾', name: '星屑残页 · 富',
+      desc: '击杀掉落能量 +8%（残页可无限重拾）',
+      apply: g => { g.mods.bountyMul *= 1.08; } },
+    { id: 'frag_core', tier: 'f', frag: true, icon: '✚', name: '星屑残页 · 愈',
+      desc: '星核上限 +2，并立即修复 2 点（残页可无限重拾）',
+      apply: g => { g.coreMax += 2; g.coreHp = Math.min(g.coreMax, g.coreHp + 2); g.ui.refreshCore(); } }
+  ];
 
   PE.relics = {
     RELICS,
+    FRAGMENTS,
     TIER_META,
 
-    /** 随机抽出 n 个不重复且当前可用的遗物 */
+    /** 随机抽出 n 个不重复且当前可用的遗物；
+     *  池子不足（无尽后期 18 遗物拾尽）时，以可无限重拾的星屑残页补齐，
+     *  保证返回值永远 ≥ min(n, 残页数) 张，杜绝空三选一导致的流程锁死。 */
     offer(game, n) {
       const owned = game.ownedRelics;
       const avail = RELICS.filter(r => !owned.has(r.id) && (!r.can || r.can(game.mods)));
@@ -103,6 +126,14 @@
         for (const r of pool) { roll -= TIER_W[r.tier]; if (roll <= 0) { pick = r; break; } }
         out.push(pick);
         pool.splice(pool.indexOf(pick), 1);
+      }
+      // 星屑残页补齐：先去重抽（4 种 ≥ 3 张需求），不够再随机重复（兑底）
+      const frags = FRAGMENTS.slice();
+      while (out.length < n && frags.length) {
+        out.push(frags.splice(Math.floor(Math.random() * frags.length), 1)[0]);
+      }
+      while (out.length < n) {
+        out.push(FRAGMENTS[Math.floor(Math.random() * FRAGMENTS.length)]);
       }
       return out;
     }

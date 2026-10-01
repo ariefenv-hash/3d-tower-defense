@@ -83,9 +83,15 @@
     }
 
     _rebuildVisuals() {
-      // 清旧段
-      for (const s of this.segObjs) this.group.remove(s.core, s.glow);
-      for (const d of this.dots) this.group.remove(d.mesh);
+      // 清旧段（材质逐段新建，须同步释放；SEG_GEO / DOT_GEO 共享不可释放）
+      for (const s of this.segObjs) {
+        this.group.remove(s.core, s.glow);
+        s.mat.dispose(); s.glowMat.dispose();
+      }
+      for (const d of this.dots) {
+        this.group.remove(d.mesh);
+        d.mesh.material.dispose();
+      }
       this.segObjs = [];
       this.dots = [];
 
@@ -181,8 +187,14 @@
     }
 
     clear() {
-      for (const s of this.segObjs) this.group.remove(s.core, s.glow);
-      for (const d of this.dots) this.group.remove(d.mesh);
+      for (const s of this.segObjs) {
+        this.group.remove(s.core, s.glow);
+        s.mat.dispose(); s.glowMat.dispose();
+      }
+      for (const d of this.dots) {
+        this.group.remove(d.mesh);
+        d.mesh.material.dispose();
+      }
       this.segObjs = [];
       this.dots = [];
       this.chains = [];

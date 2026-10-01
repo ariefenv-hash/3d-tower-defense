@@ -5,7 +5,7 @@
  * ===================================================== */
 'use strict';
 
-var CACHE = 'prism-echo-v1';
+var CACHE = 'prism-echo-v4';
 var CORE = [
   './',
   './index.html',

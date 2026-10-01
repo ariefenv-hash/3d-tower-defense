@@ -15,15 +15,40 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="棱镜回响" />
 
+<!-- 卷首启动屏：脚本加载期间即时出画（inline 零请求，main.js 启动后淡出） -->
+<style>
+  #boot { position: fixed; inset: 0; z-index: 99; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px; background: #0b0e17;
+    color: #c9a86a; font-family: 'Noto Serif SC', STSong, SimSun, serif;
+    letter-spacing: .5em; text-indent: .5em; font-size: 12px;
+    transition: opacity .45s ease; }
+  #boot .seal { width: 52px; height: 52px; border-radius: 6px; background: #c8452e;
+    color: #f2ecd8; display: flex; align-items: center; justify-content: center;
+    font-size: 25px; letter-spacing: 0; text-indent: 0;
+    box-shadow: inset 0 0 0 1px rgba(242, 236, 216, .4), 0 8px 24px rgba(0, 0, 0, .5);
+    animation: boot-breathe 1.5s ease-in-out infinite; }
+  @keyframes boot-breathe { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .8; transform: scale(.93); } }
+  #boot.hide { opacity: 0; pointer-events: none; }
+</style>
+
+<!-- 预拉最重资源：three.min.js（592K）在 HTML 解析期就开始下载 -->
+<link rel="preload" href="vendor/three.min.js" as="script" />
+
 <!-- 衬线字体：思源宋体（题字·正文）· Cormorant Garamond（数笈） -->
-<!-- 联网时由 Google Fonts 提供；离线时回退本地宋体，书卷气不减 -->
+<!-- 非阻塞加载：先用本地宋体出画，联网字体就位后无感替换（swap） -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+SC:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+SC:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+<noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+SC:wght@400;500;600&display=swap" rel="stylesheet" /></noscript>
 
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+<!-- 卷首启动屏 -->
+<div id="boot" aria-hidden="true">
+  <div class="seal">回</div>
+  <div>星墨手卷 · 展卷中</div>
+</div>
 <div id="app">
   <!-- 3D 渲染画布容器 -->
   <div id="scene-holder"></div>
@@ -90,21 +115,24 @@
   <div id="modal-layer" class="hidden"></div>
 </div>
 
-<!-- 多文件加载：全局命名空间 PE（无需服务器，file:// 双击即玩） -->
-<script src="vendor/three.min.js"></script>
-<script src="js/config.js"></script>
-<script src="js/utils.js"></script>
-<script src="js/sfx.js"></script>
-<script src="js/scene.js"></script>
-<script src="js/map.js"></script>
-<script src="js/beam.js"></script>
-<script src="js/enemy.js"></script>
-<script src="js/tower.js"></script>
-<script src="js/waves.js"></script>
-<script src="js/relics.js"></script>
-<script src="js/game.js"></script>
-<script src="js/input.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/main.js"></script>
+<!-- 多文件加载：全局命名空间 PE（无需服务器，file:// 双击即玩）；defer 并行下载、按序执行 -->
+<script src="vendor/three.min.js" defer></script>
+<script src="js/config.js" defer></script>
+<script src="js/utils.js" defer></script>
+<script src="js/sfx.js" defer></script>
+<script src="js/scene.js" defer></script>
+<script src="js/map.js" defer></script>
+<script src="js/beam.js" defer></script>
+<script src="js/enemy.js" defer></script>
+<script src="js/tower.js" defer></script>
+<script src="js/waves.js" defer></script>
+<script src="js/relics.js" defer></script>
+<script src="js/game.js" defer></script>
+<script src="js/input.js" defer></script>
+<script src="js/ui.js" defer></script>
+<script src="js/main.js" defer></script>
+<script>/* 兑底：极端情况下脚本未能启动，启动屏也不会永挂 */
+  setTimeout(function () { var b = document.getElementById('boot'); if (b) b.remove(); }, 8000);
+</script>
 </body>
 </html>

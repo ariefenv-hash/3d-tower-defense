@@ -209,8 +209,14 @@
     }
 
     dispose() {
+      // 完整释放：敌人几何体由 GEO 工厂逐只新建（octa: s => new ...），全部独占可释放
       this.game.scene.scene.remove(this.group);
-      this.mat.dispose();
+      this.group.traverse(o => {
+        if (o.geometry) o.geometry.dispose();
+        if (o.material) {
+          (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => m.dispose());
+        }
+      });
     }
   };
 })();

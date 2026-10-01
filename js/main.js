@@ -41,6 +41,13 @@
     requestAnimationFrame(frame);
 
     window.PE.game = game; // 调试入口
+
+    // 卷首启动屏淡出（boot 兑底脚本已在 8s 后自动移除）
+    const bootEl = document.getElementById('boot');
+    if (bootEl) {
+      bootEl.classList.add('hide');
+      setTimeout(() => bootEl.remove(), 500);
+    }
   }
 
   if (document.readyState === 'loading') {

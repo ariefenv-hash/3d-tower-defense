@@ -41,6 +41,21 @@
     }
     worldPos(col, row) { return U.cellToWorld(col, row); }
 
+    /* 释放整张星图（重开一卷时调用：旧地图若不移除会叠加显示且泄漏 GPU 资源）
+       共享几何体 GEO 跨局复用，不可 dispose */
+    dispose() {
+      if (!this.group) return;
+      this.scene.remove(this.group);
+      const shared = Object.values(GEO);
+      this.group.traverse(o => {
+        if (o.geometry && !shared.includes(o.geometry)) o.geometry.dispose();
+        if (o.material) {
+          (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => m.dispose());
+        }
+      });
+      this.group = null;
+    }
+
     /* ---------- 程序化生成 ---------- */
     generate() {
       const rng = this.rng, G = C.GRID, core = C.CORE;

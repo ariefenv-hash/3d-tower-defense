@@ -37,7 +37,10 @@ body {
   -webkit-tap-highlight-color: transparent;
   font-feature-settings: 'liga' 1;
 }
-#app { position: relative; width: 100vw; height: 100vh; }
+/* 移动浏览器 100vh = 工具栏收起时的大视口：导航栏展开时底部布防栏被压在栏下（真机已证实）
+   → 100% 链打底（iOS 解析为可见小视口），100dvh 动态视口覆盖（随导航栏伸缩）
+   → 不支持 dvh 的老浏览器自动回退 100% */
+#app { position: relative; width: 100vw; height: 100vh; height: 100%; height: 100dvh; touch-action: pan-y; }
 #scene-holder, #scene-holder canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 /* 触屏手势地面：禁止浏览器默认滚动/缩放，把手势留给游戏 */
 #scene-holder canvas { touch-action: none; }
@@ -284,13 +287,14 @@ body {
 #tp-stats b { color: var(--gold); font-weight: 600; font-family: var(--font-num); font-size: 14px; }
 #tp-stats .up { color: var(--jade); }
 #tp-actions { display: flex; gap: 8px; margin-top: 12px; }
-#tp-actions button { flex: 1; padding: 8px 4px; font-size: 13px; letter-spacing: .12em; }
+#tp-actions button { flex: 1; min-height: 44px; padding: 8px 4px; font-size: 13px; letter-spacing: .12em; }
 
 /* ---------- 遗物印匣（左侧） ---------- */
 #relic-bar {
   position: absolute; left: 16px; top: 110px; z-index: 9;
   display: flex; flex-direction: column; gap: 8px;
-  max-height: calc(100vh - 300px); overflow-y: auto;
+  max-height: calc(100vh - 300px);
+  max-height: calc(100dvh - 300px); overflow-y: auto;
   scrollbar-width: none;
 }
 #relic-bar::-webkit-scrollbar { display: none; }
@@ -304,6 +308,21 @@ body {
   border: 1px solid var(--rc, rgba(201, 168, 106, .45));
   box-shadow: inset 0 0 0 1px rgba(7, 8, 12, .8), inset 0 0 0 2px rgba(230, 221, 196, .05);
   border-radius: 4px;
+}
+/* 星屑残页同类合并计数角标（×N） */
+.relic-icon .rcount {
+  position: absolute;
+  right: -5px; bottom: -5px;
+  font-style: normal;
+  font-family: var(--font-body);
+  font-size: 10px; font-weight: 700;
+  line-height: 1;
+  padding: 2.5px 4px;
+  color: #0b0e17;
+  background: #c9a86a;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .55);
+  pointer-events: none;
 }
 .relic-icon:hover::after,
 .relic-icon.show-tip::after {
@@ -382,8 +401,20 @@ body {
   backdrop-filter: blur(6px);
   display: flex; align-items: center; justify-content: center;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* PWA standalone / 刘海屏：上下留出安全区 */
+  padding: 16px;
+  padding-top: max(16px, env(safe-area-inset-top, 0px));
+  padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
 }
-.modal-inner { text-align: center; max-width: 980px; padding: 20px; animation: modal-in 0.34s ease; }
+/* 矮屏可滚动（触屏在 #app pan-y 约束内仍可竖向拖动模态内容） */
+.modal-inner {
+  text-align: center; max-width: 980px; padding: 20px; animation: modal-in 0.34s ease;
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
 @keyframes modal-in { from { opacity: 0; transform: scale(.965); } }
 
 /* —— 角饰 —— */
@@ -675,4 +706,24 @@ body {
   #wave-ctl { flex: 1 1 100%; justify-content: center; }
   .game-title .vt { font-size: 34px; }
   .feature-grid { grid-template-columns: 1fr; }
+}
+
+/* 横屏短视口（手机横持 / 平板横放）：纵向寸土寸金，HUD 单行化、布防栏压扁贴底 */
+@media (max-height: 500px) and (orientation: landscape) {
+  #hud-top { flex-wrap: nowrap; gap: 8px; padding: calc(5px + env(safe-area-inset-top, 0px)) 10px 5px; }
+  .hud-block { flex: 0 1 auto; padding: 4px 10px; }
+  .hud-label, #wave-dots, .hud-spacer { display: none; }
+  .hud-value { font-size: 15px; }
+  #core-hp-bar { width: 96px; margin: 2px 0; }
+  #core-hp-num { font-size: 11px; }
+  #build-bar { bottom: calc(4px + env(safe-area-inset-bottom, 0px)); }
+  .bar-title { display: none; }
+  #build-cards { gap: 6px; }
+  .tower-card { flex: 0 0 116px; width: 116px; padding: 5px 8px 4px; }
+  .tc-desc { display: none; }
+  .tc-icon { font-size: 15px; margin-bottom: 1px; }
+  .tc-name { font-size: 12px; }
+  .tc-cost { font-size: 12px; }
+  #tower-panel { left: auto; right: 8px; width: 232px; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); }
+  #zoom-ctl { top: 40%; }
 }

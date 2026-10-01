@@ -13,6 +13,25 @@
           (window.matchMedia && matchMedia('(pointer: coarse)').matches) ||
           ('ontouchstart' in window && navigator.maxTouchPoints > 0));
     },
+    /** 触屏轻触反馈（无振动 API / 桌面端静默跳过） */
+    haptic(ms) {
+      try {
+        if (navigator.vibrate && PE.utils.isCoarse()) navigator.vibrate(ms);
+      } catch (e) { /* 静默 */ }
+    },
+    /** 是否运行在 PWA 全屏（standalone / fullscreen）环境：
+     *  iOS 走 navigator.standalone（Safari 不上报 display-mode 媒体查询），
+     *  Chromium / Android 走 display-mode 查询 */
+    isStandalone() {
+      try {
+        if (window.navigator.standalone === true) return true;
+        if (window.matchMedia) {
+          return matchMedia('(display-mode: standalone)').matches ||
+                 matchMedia('(display-mode: fullscreen)').matches;
+        }
+      } catch (e) { /* 静默 */ }
+      return false;
+    },
     /** mulberry32 — 可复现的种子随机数（Roguelike 精神：每局一个 seed） */
     makeRng(seed) {
       let a = seed >>> 0;

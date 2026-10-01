@@ -154,6 +154,7 @@
     /* ---------- 开局 / 重开 ---------- */
     startRun() {
       // 清场
+      if (this.map) { this.map.dispose(); this.map = null; } // 旧星图：移出场景并释放（防叠加/泄漏）
       for (const t of this.towers) t.dispose();
       this.towers = [];
       this.towerMap.clear();
@@ -221,7 +222,7 @@
         return;
       }
 
-      // Roguelike 三选一
+      // Roguelike 三选一（无尽后期遗物拾尽时 offer 会自动补星屑残页，永不返空）
       const choices = PE.relics.offer(this, 3);
       if (this.ui) this.ui.showRelicChoices(choices);
     }
@@ -235,6 +236,16 @@
         this.ui.addRelicIcon(relic);
         this.ui.toast(`获得回响 · ${relic.name}`, 'gold');
       }
+      this._enterBuildPhase();
+    }
+
+    /** 防御出口：无遗物可拾时直接进入备战（与 pickRelic 同一流转，
+     *  保证任何情况下 'relic' 状态都有出路，杜绝流程锁死） */
+    skipRelic() {
+      this._enterBuildPhase();
+    }
+
+    _enterBuildPhase() {
       // 进入下一波准备
       this.state = 'build';
       this.buildCountdown = C.BUILD_TIME;
@@ -321,7 +332,7 @@
       if (e.isBoss) {
         PE.sfx.boss();
         this.fx.ring(e.x, e.z, 0xd0492f, 4);
-        if (this.ui) this.ui.toast('湮灭核心已被摧毁！+200 能量', 'gold');
+        if (this.ui) this.ui.toast(`湮灭核心已被摧毁！+${gain} 能量`, 'gold');
       }
       if (this.ui) this.ui.refresh();
     }

@@ -2,16 +2,22 @@
  * input.js — 指针交互（建造 / 选中 / 相机 / 手势）
  *  鼠标：拖拽 = 旋转视角 · 滚轮 = 缩放 · 点击 = 建造/选中
  *  触屏：单指拖动 = 转卷 · 双指捏合 = 缩放视野 · 轻点 = 布防/选中
+ *        建造模式下单指拖动 = 精调放置点（幽灵跟随），抬手落子
  *  Shift = 连续建造
+ *  —— 轻点判定用「距按下点的净位移」而非累计路径：真实手指在
+ *     玻璃上天然抖动（来回摆动会重复计数），累计路径极易误判为拖拽
  * ===================================================== */
 (function () {
   'use strict';
   window.PE = window.PE || {};
   const U = PE.utils, C = PE.CONFIG;
 
-  const TAP_SLACK = 10;      // 判定为“轻点”的最大位移（px）
-  const TAP_MS = 600;        // 判定为“轻点”的最长时长
-  const PINCH_K = 2.0;       // 捏合 → 视野距离灵敏度
+  const TAP_MS = 750;            // 轻点最长时长（放宽慢速点按）
+  const TAP_SLACK_MOUSE = 8;     // 鼠标轻点净位移容差（px）
+  const TAP_SLACK_TOUCH = 16;    // 触屏轻点净位移容差（手指抖动天然更大）
+  const DRAG_START_MOUSE = 6;    // 鼠标进入转卷的迟滞（px）
+  const DRAG_START_TOUCH = 12;   // 触屏进入转卷的迟滞（px）
+  const PINCH_K = 2.0;           // 捏合 → 视野距离灵敏度
 
   PE.Input = class {
     constructor(game, ui, scene) {
@@ -24,8 +30,8 @@
       this.ghost = null;
       this.shift = false;
 
-      this.pointers = new Map();  // pointerId -> { x, y }（活跃指针）
-      this.down = null;           // 主指针 { x, y, moved, t, id }
+      this.pointers = new Map();  // pointerId -> { x, y, type }
+      this.down = null;           // 主指针 { x, y, sx, sy, t, id, touch, dragging }
       this.pinchDist = null;      // 双指捏合的上一帧间距
 
       this._bind();
@@ -38,12 +44,19 @@
 
       /* ---- 按下 ---- */
       cv.addEventListener('pointerdown', e => {
-        this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, type: e.pointerType });
 
         if (this.pointers.size === 1) {
-          this.down = { x: e.clientX, y: e.clientY, moved: 0, t: performance.now(), id: e.pointerId };
+          this.down = {
+            x: e.clientX, y: e.clientY,   // 当前位置（增量拖拽用）
+            sx: e.clientX, sy: e.clientY, // 起始位置（净位移判定用）
+            t: performance.now(),
+            id: e.pointerId,
+            touch: e.pointerType !== 'mouse',
+            dragging: false                // 是否已进入转卷状态
+          };
           // 触屏没有 hover：按下即预览建造位置（幽灵 + 高亮）
-          if (e.pointerType !== 'mouse') this._hover(e.clientX, e.clientY);
+          if (this.down.touch) this._hover(e.clientX, e.clientY);
         } else if (this.pointers.size === 2) {
           // 进入双指缩放：撤销单击判定，记录基准间距
           const [p1, p2] = [...this.pointers.values()];
@@ -69,18 +82,25 @@
           return;
         }
 
-        // 单指/鼠标拖动 → 转卷（用逐帧位移，兼容触屏无 movementX）
-        if (this.down && e.pointerId === this.down.id) {
-          const dx = e.clientX - this.down.x;
-          const dy = e.clientY - this.down.y;
-          this.down.moved += Math.abs(dx) + Math.abs(dy);
-          if (this.down.moved > TAP_SLACK) {
-            this.scene.orbitFromDrag(dx, dy);
-            // 触屏拖动转卷时收起建造预览，避免误导
-            if (e.pointerType !== 'mouse') this._hideGhost();
+        // 单指 / 鼠标
+        const dn = this.down;
+        if (dn && e.pointerId === dn.id) {
+          const dx = e.clientX - dn.x;
+          const dy = e.clientY - dn.y;
+          dn.x = e.clientX; dn.y = e.clientY;
+
+          if (dn.touch && this.buildType) {
+            // 触屏建造模式：手指拖动 = 精调放置点（幽灵跟随，不转卷）
+            this._hover(e.clientX, e.clientY);
+          } else {
+            // 转卷：超过迟滞净位移才启动（防手抖误旋转）
+            const off = Math.hypot(e.clientX - dn.sx, e.clientY - dn.sy);
+            if (!dn.dragging && off > (dn.touch ? DRAG_START_TOUCH : DRAG_START_MOUSE)) {
+              dn.dragging = true;
+              if (dn.touch) this._hideGhost(); // 拖动转卷时收起预览，避免误导
+            }
+            if (dn.dragging) this.scene.orbitFromDrag(dx, dy);
           }
-          this.down.x = e.clientX;
-          this.down.y = e.clientY;
         }
 
         // 鼠标才有悬停预览
@@ -92,15 +112,38 @@
         this.pointers.delete(e.pointerId);
         if (this.pointers.size < 2) this.pinchDist = null;
 
-        const wasDown = this.down;
-        if (this.down && this.down.id === e.pointerId) this.down = null;
+        const dn = this.down;
+        const wasMain = !!(dn && dn.id === e.pointerId);
+        if (wasMain) this.down = null;
 
-        // 轻点 → 建造 / 选中（触屏 pointerup 的 button 恒为 0）
-        if (wasDown && wasDown.id === e.pointerId && wasDown.moved <= TAP_SLACK) {
-          const dur = performance.now() - wasDown.t;
-          const isTap = dur <= TAP_MS &&
-            (e.button === 0 || e.pointerType !== 'mouse');
-          if (isTap) this._click(e.clientX, e.clientY, e.shiftKey);
+        // 捏合后余指继续转卷：重挂主指针（dragging 预置，绝不误判轻点）
+        if (!this.down && this.pointers.size === 1) {
+          const [id] = [...this.pointers.keys()];
+          const [p] = [...this.pointers.values()];
+          this.down = {
+            x: p.x, y: p.y, sx: p.x, sy: p.y,
+            t: performance.now(), id,
+            touch: p.type !== 'mouse',
+            dragging: true
+          };
+        }
+
+        if (!wasMain || !dn || e.type !== 'pointerup') return; // pointercancel = 系统接管，不算轻点
+
+        // 触屏建造模式：拖动即精调，抬手一律落子（不设位移门槛）
+        const touchBuild = dn.touch && this.buildType;
+        if (touchBuild) {
+          this._click(e.clientX, e.clientY, e.shiftKey);
+          return;
+        }
+
+        // 轻点判定：净位移（非累计路径）+ 时长；触屏 pointerup 的 button 恒为 0
+        const off = Math.hypot(e.clientX - dn.sx, e.clientY - dn.sy);
+        const slack = dn.touch ? TAP_SLACK_TOUCH : TAP_SLACK_MOUSE;
+        const dur = performance.now() - dn.t;
+        const okBtn = e.button === 0 || dn.touch;
+        if (dur <= TAP_MS && off <= slack && okBtn && !dn.dragging) {
+          this._click(dn.sx, dn.sy, e.shiftKey); // 用按下位置：那是用户的瞄准点
         }
       };
       window.addEventListener('pointerup', release);
@@ -137,7 +180,12 @@
 
     setBuildType(type) {
       this.buildType = type;
-      if (this.ghost) { this.scene.scene.remove(this.ghost); this.ghost = null; }
+      if (this.ghost) {
+        this.scene.scene.remove(this.ghost);
+        this.ghost.geometry.dispose(); // 预览几何/材质逐次新建，切换时释放
+        this.ghost.material.dispose();
+        this.ghost = null;
+      }
       if (this.game.map) this.game.map.setHover(null, true);
       if (type) {
         this.ghost = PE.makeGhost(type);
@@ -213,8 +261,9 @@
         if (!res.ok) {
           if (res.why === 'energy') this.ui.toast('能量不足', 'bad');
           else this.ui.toast('此处无法建造', 'bad');
-        } else if (!shiftKey) {
-          this.setBuildType(null);
+        } else {
+          U.haptic(12); // 触屏轻触反馈（无振动 API 的设备静默跳过）
+          if (!shiftKey) this.setBuildType(null);
         }
         return;
       }

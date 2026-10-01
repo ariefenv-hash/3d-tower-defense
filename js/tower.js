@@ -44,7 +44,7 @@
     get sellValue() { return Math.round(this.spent * C.BUILD.sellRefund); }
 
     _buildMesh() {
-      if (this.group) this.game.scene.scene.remove(this.group);
+      if (this.group) this._disposeMesh(); // 升级重建：旧 mesh 移出并释放（防 GPU 泄漏）
       this.group = new THREE.Group();
       this.group.position.set(this.x, 0, this.z);
 
@@ -214,7 +214,22 @@
     }
 
     dispose() {
+      this._disposeMesh();
+    }
+
+    /* 移出场景并释放本塔独占的几何体/材质；
+       BASE_GEO / LV_RING_GEO / PROJ_GEO 为模块级共享，跨塔复用不可释放 */
+    _disposeMesh() {
+      if (!this.group) return;
       this.game.scene.scene.remove(this.group);
+      const shared = [BASE_GEO, LV_RING_GEO, PROJ_GEO];
+      this.group.traverse(o => {
+        if (o.geometry && !shared.includes(o.geometry)) o.geometry.dispose();
+        if (o.material) {
+          (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => m.dispose());
+        }
+      });
+      this.group = null;
     }
   };
 

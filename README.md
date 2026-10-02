@@ -3,6 +3,27 @@
 3D Roguelike 塔防游戏 · Three.js 纯前端实现 · 零构建 / 零依赖 / 支持 PWA
 **玄墨为底 · 宣纸作字 · 朱砂点印 · 月金描线** —— 桌面与手机双端可玩
 
+---
+<p align="center">
+  <a href="https://ariefenv-hash.github.io/3d-tower-defense/" style="font-size:1.1rem">
+    <b>🕹️ 在线试玩（手机/电脑均可）</b><br><br>
+  </a>
+</p>
+
+<table align="center">
+  <tr>
+    <td align="center"><sub><b>Three.js r128</b>（本地内置）</sub></td>
+    <td align="center"><sub><b>零构建 · 零依赖</b></sub></td>
+    <td align="center"><sub><b>PWA 离线可玩</b></sub></td>
+    <td align="center"><sub><b>18 遗物 + 4 残页</b></sub></td>
+    <td align="center"><sub><b>15 波 + 无尽模式</b></sub></td>
+  </tr>
+</table>
+
+> **核心机制**：星核吐出一道不瞄不追的月金光束，光束永远射向最近的棱镜塔，折射后再射向下一个——**你把棱镜摆在哪里，光就烧穿哪里**。
+> 每局随机星图 + 每波三选一遗物，构筑答案永远不同。
+
+
 ## 怎么运行
 
 **方式一（推荐，双击即玩）**：解压后直接双击 `index.html`。

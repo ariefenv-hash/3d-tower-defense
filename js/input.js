@@ -160,8 +160,12 @@
         if (e.key === 'Shift') this.shift = true;
         const s = this.game.state;
         if (e.key === 'Escape') {
-          this.setBuildType(null);
-          this.deselect();
+          if (this.game.paused) { this.ui.togglePauseFlow(); }  // 暂停中 Esc = 继续游戏
+          else { this.setBuildType(null); this.deselect(); }
+        } else if (e.key === 'p' || e.key === 'P') {
+          this.ui.togglePauseFlow();                              // P = 暂停 / 继续
+        } else if (e.key === 'f' || e.key === 'F') {
+          this.ui.cycleSpeed();                                   // F = 倍速循环
         } else if (e.key === '1' || e.key === '2' || e.key === '3') {
           if (s === 'build' || s === 'wave') {
             const types = Object.keys(C.TOWERS);
@@ -169,7 +173,7 @@
           }
         } else if (e.code === 'Space') {
           e.preventDefault();
-          if (s === 'build') { this.game.startWave(); this.setBuildType(this.buildType); }
+          if (s === 'build' && !this.game.paused) { this.game.startWave(); this.setBuildType(this.buildType); }
         }
       });
 

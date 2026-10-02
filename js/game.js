@@ -9,6 +9,17 @@
   window.PE = window.PE || {};
   const U = PE.utils, C = PE.CONFIG;
 
+  /* ============ 本地存档（最高纪录 / 通关次数 / 设置偏好） ============
+   * localStorage 在隐私模式 / file:// 某些浏览器下可能抛错，全部静默兑底 */
+  const SAVE_KEY = 'prism-echo-save-v1';
+  PE.loadSave = function () {
+    try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || {}; }
+    catch (e) { return {}; }
+  };
+  PE.writeSave = function (data) {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch (e) { /* 静默 */ }
+  };
+
   /* ============ 粒子特效池 ============ */
   PE.Fx = class {
     constructor(scene) {
@@ -121,6 +132,11 @@
       this.map = null;
       this.rng = Math.random;
 
+      // 暂停 / 倍速（对局控制）
+      this.paused = false;
+      this.speedMul = 1;           // 1 / 2 / 4
+      this.newRecord = false;      // 本局是否刷新最高波次纪录
+
       this.towers = [];
       this.towerMap = new Map();   // "col,row" -> tower
       this.enemies = [];
@@ -140,6 +156,9 @@
       this.selected = null;
       this.buildType = null;
       this.coreFlashT = 0;
+      this.paused = false;
+      this.speedMul = 1;
+      this.newRecord = false;
       this.mods = {
         beamDmg: 1, beamChain: 0, beamSplits: 1, beamWidth: 1,
         beamNoDecay: false, prismGainBonus: 0, hasFocus: false, hasWidth: false,
@@ -149,6 +168,33 @@
         enemySlowField: false, secondLife: false, secondLifeUsed: false,
         huntMul: 1, execMul: 1
       };
+    }
+
+    /* ---------- 对局控制：暂停 / 倍速 ---------- */
+    /** 仅在 build / wave 态可暂停；返回暂停后的状态 */
+    togglePause() {
+      if (this.state !== 'build' && this.state !== 'wave') return this.paused;
+      this.paused = !this.paused;
+      return this.paused;
+    }
+
+    /** 1× → 2× → 4× → 1× 循环；返回当前倍速 */
+    cycleSpeed() {
+      this.speedMul = this.speedMul === 1 ? 2 : (this.speedMul === 2 ? 4 : 1);
+      return this.speedMul;
+    }
+
+    /** 波次纪录：超过历史最高则写入存档并标记新纪录（开局即记，败在中途也算到达） */
+    _recordWaveReach() {
+      const s = PE.loadSave();
+      const key = this.endless ? 'bestEndless' : 'bestWave';
+      if (this.wave > (s[key] || 0)) { s[key] = this.wave; this.newRecord = true; PE.writeSave(s); }
+    }
+
+    /** 单局最高击杀记录 */
+    _recordKills() {
+      const s = PE.loadSave();
+      if (this.stats.kills > (s.bestKills || 0)) { s.bestKills = this.stats.kills; PE.writeSave(s); }
     }
 
     /* ---------- 开局 / 重开 ---------- */
@@ -185,6 +231,7 @@
     startWave() {
       if (this.state !== 'build') return;
       this.wave++;
+      this._recordWaveReach();
       this.waves.setup(this.wave);
       this.waves.start();
       this.state = 'wave';
@@ -216,6 +263,10 @@
 
       // 通关判定
       if (this.wave >= C.MAX_WAVE && !this.endless) {
+        const s = PE.loadSave();
+        s.wins = (s.wins || 0) + 1;
+        PE.writeSave(s);
+        this._recordKills();
         PE.sfx.win();
         if (this.ui) this.ui.showVictory(this.stats);
         this.state = 'over';
@@ -359,6 +410,7 @@
 
     _gameOver() {
       this.state = 'over';
+      this._recordKills();
       PE.sfx.lose();
       this.scene.shake(1.1);
       this.fx.burst(this.map.coreGroup.position.x, 1, this.map.coreGroup.position.z, 0xd9c489, 40, 6);
@@ -367,6 +419,7 @@
 
     /* ---------- 主循环 ---------- */
     update(dt) {
+      if (this.paused) return;   // 暂停：全部逻辑冻结（渲染仍在 main 循环中继续）
       this.time += dt;
       if (this.map) this.map.update(dt);
       this.scene.update(dt);

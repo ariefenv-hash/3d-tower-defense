@@ -20,11 +20,14 @@
         buildCards: $('build-cards'),
         towerPanel: $('tower-panel'), tpName: $('tp-name'), tpStats: $('tp-stats'),
         tpUpgrade: $('tp-upgrade'), tpSell: $('tp-sell'), tpClose: $('tp-close'),
-        modal: $('modal-layer'), toastWrap: $('toast-wrap')
+        modal: $('modal-layer'), toastWrap: $('toast-wrap'),
+        ctlCluster: $('ctl-cluster'),
+        btnSpeed: $('btn-speed'), btnPause: $('btn-pause'), btnMute: $('btn-mute')
       };
       this._renderBuildCards();
       this._bind();
       this._bindZoom();
+      this._bindCtl();
     }
 
     /* 触屏 / 窄屏的视野缩放按钮 */
@@ -92,6 +95,67 @@
       }
     }
 
+    /* ---------- 对局控制簇：倍速 / 暂停 / 静音 ---------- */
+    _bindCtl() {
+      this.el.btnSpeed.addEventListener('click', () => { PE.sfx.click(); this.cycleSpeed(); });
+      this.el.btnPause.addEventListener('click', () => this.togglePauseFlow());
+      // 静音开关（接通 toggleMute，并把偏好写入本地存档）
+      this.el.btnMute.classList.toggle('muted', PE.sfx.muted);
+      this.el.btnMute.addEventListener('click', () => {
+        const m = PE.sfx.toggleMute();
+        this.el.btnMute.classList.toggle('muted', m);
+        const s = PE.loadSave(); s.muted = m; PE.writeSave(s);
+        if (!m) PE.sfx.click();
+      });
+    }
+
+    cycleSpeed() {
+      const v = this.game.cycleSpeed();
+      this.el.btnSpeed.textContent = v + '×';
+      U.haptic(8);
+      this.toast(v === 1 ? '正常流速' : `时光加速 ×${v}`);
+    }
+
+    togglePauseFlow() {
+      const g = this.game;
+      const nowPaused = g.togglePause();
+      if (nowPaused) this.showPause();
+      else this.hideModal();
+      this.syncPauseBtn();
+      U.haptic(8);
+    }
+
+    syncPauseBtn() {
+      this.el.btnPause.textContent = this.game.paused ? '▶' : '❚❚';
+    }
+
+    showPause() {
+      this.el.modal.innerHTML = `
+        <div class="modal-inner">
+          <div class="pause-frame ink-panel corner">
+            <div class="pause-title">暂 停</div>
+            <div class="pause-sub">手卷凝驻 · 星光暂歇</div>
+            <div class="end-actions">
+              <button id="btn-resume" class="btn-primary btn-big">继续 ▶</button>
+              <button id="btn-restart-pause" class="btn-ghost">再启一卷</button>
+            </div>
+          </div>
+        </div>`;
+      this.el.modal.classList.remove('hidden');
+      document.getElementById('btn-resume').addEventListener('click', () => {
+        PE.sfx.click();
+        this.game.paused = false;
+        this.hideModal();
+        this.syncPauseBtn();
+      });
+      document.getElementById('btn-restart-pause').addEventListener('click', () => {
+        PE.sfx.click();
+        this.game.paused = false;
+        this.syncPauseBtn();
+        this.game.startRun();
+      });
+    }
+
     /* ---------- HUD 刷新 ---------- */
     refresh() {
       const g = this.game;
@@ -123,7 +187,11 @@
       this.el.hudTop.classList.remove('hidden');
       this.el.relicBar.classList.remove('hidden');
       this.el.buildBar.classList.remove('hidden');
+      this.el.ctlCluster.classList.remove('hidden');
       this.el.relicBar.innerHTML = '';
+      // 对局控制复位
+      this.el.btnSpeed.textContent = this.game.speedMul + '×';
+      this.syncPauseBtn();
       this._renderWaveDots();
       this.hideModal();
       this.refresh();
@@ -322,6 +390,15 @@
       this.el.relicBar.classList.add('hidden');
       this.el.buildBar.classList.add('hidden');
       this.el.towerPanel.classList.add('hidden');
+      this.el.ctlCluster.classList.add('hidden');
+      // 本地存档：最高纪录展示（无纪录时不占位）
+      const sv = PE.loadSave();
+      const recordHtml = (sv.bestWave || sv.bestEndless)
+        ? `<div class="menu-record">★ 最高纪录 · 主线第 ${sv.bestWave || 0} 波`
+          + (sv.bestEndless ? ` · 无尽第 ${sv.bestEndless} 波` : '')
+          + (sv.bestKills ? ` · 单局歼灭 ${sv.bestKills}` : '')
+          + (sv.wins ? ` · 通关 ${sv.wins} 次` : '') + `</div>`
+        : '';
       this.el.modal.innerHTML = `
         <div class="modal-inner">
           <div class="menu-frame ink-panel corner">
@@ -365,6 +442,7 @@
               </div>
               <button id="btn-start-run" class="btn-primary btn-big">启 卷</button>
               <div class="menu-tip">十五波攻防 · 守住星核 · 通关后可入无尽长夜</div>
+              ${recordHtml}
             </div>
           </div>
         </div>`;
@@ -381,6 +459,7 @@
         <div class="modal-inner">
           <div class="end-title win">长夜将尽</div>
           <div class="end-sub">十五波攻势尽数肃清 · 星核之光仍在手卷上流转</div>
+          ${this.game.newRecord ? '<div class="new-record">✦ 新 纪 录</div>' : ''}
           <div class="end-stats corner">
             <span>肃清波次</span><b>${stats.waves}</b>
             <span>击杀总数</span><b>${stats.kills}</b>
@@ -410,6 +489,7 @@
         <div class="modal-inner">
           <div class="end-title lose">星核沉眠</div>
           <div class="end-sub">第 ${this.game.wave} 波冲破了防线 · 但每一道折光都被星图记住了</div>
+          ${this.game.newRecord ? '<div class="new-record">✦ 新 纪 录</div>' : ''}
           <div class="end-stats corner">
             <span>坚持到</span><b>第 ${this.game.wave} 波</b>
             <span>击杀总数</span><b>${stats.kills}</b>

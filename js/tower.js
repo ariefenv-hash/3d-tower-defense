@@ -248,7 +248,7 @@
     PE.projectiles.push({
       mesh, target, dmg,
       speed: 15, life: 2.2,
-      vx: 0, vz: 0, initialized: false
+      vx: 0, vz: 0
     });
   };
 
@@ -263,13 +263,18 @@
         const dz = p.target.z - p.mesh.position.z;
         const dy = 0.5 - p.mesh.position.y;
         const d = Math.sqrt(dx * dx + dz * dz + dy * dy) || 1e-6;
-        p.mesh.position.x += (dx / d) * p.speed * dt;
+        // 记录当前飞行方向：目标中途死亡时按此方向直飞
+        p.vx = (dx / d) * p.speed;
+        p.vz = (dz / d) * p.speed;
+        p.mesh.position.x += p.vx * dt;
         p.mesh.position.y += (dy / d) * p.speed * dt;
-        p.mesh.position.z += (dz / d) * p.speed * dt;
+        p.mesh.position.z += p.vz * dt;
         if (d < 0.35) hit = true;
       } else {
-        // 目标已死：直飞消失
-        if (!p.initialized) { p.initialized = true; }
+        // 目标已死：沿最后方向直飞直至 life 耗尽自毁
+        //（原实现为空操作，弹丸会冻结悬在空中直到超时）
+        p.mesh.position.x += p.vx * dt;
+        p.mesh.position.z += p.vz * dt;
       }
 
       if (hit || p.life <= 0) {

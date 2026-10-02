@@ -165,8 +165,14 @@
         if (move < segLeft) { this.prog += move; move = 0; }
         else { move -= segLeft; this.idx++; this.prog = 0; }
       }
-      if (this.idx >= path.length - 1 && this.prog >= 1 - 1e-6) { this.leak(); return; }
-      if (this.idx >= path.length - 1) { this.prog = Math.min(this.prog, 0.9999); }
+      // 已抵达终点格（星核）：剩余推进量继续累计，走满即触发漏怪。
+      // （原实现到此直接丢弃剩余 move，prog 恒为 0，leak 永不触发，
+      //  导致敌人卡死在星核上、波次永不结束——游戏软锁死）
+      if (this.idx >= path.length - 1) {
+        this.prog += move;
+        if (this.prog >= 1) { this.leak(); return; }
+        this.prog = Math.min(this.prog, 0.9999);
+      }
 
       this._syncPos();
 

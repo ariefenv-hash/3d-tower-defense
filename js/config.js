@@ -6,7 +6,7 @@
   window.PE = window.PE || {};
 
   PE.CONFIG = {
-    VERSION: '1.1.1',
+    VERSION: '1.2.0',
 
     GRID: { COLS: 13, ROWS: 9, CELL: 1.2 },
 
